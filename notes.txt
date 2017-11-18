@@ -1,0 +1,36 @@
+Paramètres : 
+	- Proba croisement (conseillé entre 80 et 95%, mais pour certains problème 60%)
+	- Proba mutation (conseillé 0.5% - 1%)
+	- Taille pop (conseillé 20-30 ou 50-100)
+	- 
+
+
+Encodage de chromosome : 
+
+Sélection : roulette, rang et élitisme. Coder les trois et pouvoir jouer avec ce paramètre, et pouvoir combiner élitisme et roulette ou élitisme et rang.
+
+Croisement : 
+	1 - méthode aléatoire
+	2 - méthode multiple (plusieurs points de croisement, possibilité de les choisir)
+
+Mutation : changement aléatoire d'une ville
+	- Si ville choisie fait qu'il en manque une dans le cycle alors
+		- On rajoute la ville manquante avec la plus courte distance ou
+		- On annule et choisit une autre ville à changer
+
+
+
+
+
+Algo : 
+
+1 - Générer pop aléatoire de n chromosomes
+2 - Evaluer la fitness de chaque chromosome
+3 - Créer une nouvelle population (génération n+1) en bouclant de la sorte : 
+	A - Sélectionner deux chromosomes parents (génération n) selon leur fitness (ne pas oublier de prendre une petite portion de parents moins aptes)
+	B - Proba Croiser les parents (génération n) pour former une progéniture
+	C - Proba Muter la nouvelle progéniture (génération n+1)
+	D - Placer la nouvelle progéniture dans la génération n+1
+4 - Utiliser la génération n+1 pour la prochaine boucle de l'algo
+5 - Si la condition de fin est satisfaite : stop et renvoyer la meilleure solution
+6 - Goto étape 2
