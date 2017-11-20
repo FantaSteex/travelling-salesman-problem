@@ -5,7 +5,9 @@ Paramètres :
 	- 
 
 
-Encodage de chromosome : 
+Encodage de chromosome : {1, 4, 7}
+	-> Un chromosome est un tableau d'identifiants de noeuds
+	-> On considère que le chemin parcouru est nodes[0], nodes[3], nodes[6], nodes[0]
 
 Sélection : roulette, rang et élitisme. Coder les trois et pouvoir jouer avec ce paramètre, et pouvoir combiner élitisme et roulette ou élitisme et rang.
 
@@ -18,16 +20,22 @@ Mutation : changement aléatoire d'une ville
 		- On rajoute la ville manquante avec la plus courte distance ou
 		- On annule et choisit une autre ville à changer
 
-
+Fitness : calculer la distance du chemin du chromosome
 
 
 
 Algo : 
 
 1 - Générer pop aléatoire de n chromosomes
+	-> generatePopulation()
+
 2 - Evaluer la fitness de chaque chromosome
+	-> evaluateEveryFitness()
+
 3 - Créer une nouvelle population (génération n+1) en bouclant de la sorte : 
 	A - Sélectionner deux chromosomes parents (génération n) selon leur fitness (ne pas oublier de prendre une petite portion de parents moins aptes)
+		-> rankGeneration(), wheelGeneration(), elitismGeneration()...
+		
 	B - Proba Croiser les parents (génération n) pour former une progéniture
 	C - Proba Muter la nouvelle progéniture (génération n+1)
 	D - Placer la nouvelle progéniture dans la génération n+1
