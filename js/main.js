@@ -5,11 +5,13 @@ var NUMBER_OF_NODES = 25;	// Determines how many nodes there will be in the init
 var CANVAS_X;
 var CANVAS_Y;
 var run = false;	// Determines wether the genetic algorithm is running or not
-var randomGenerating = true;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
+var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
 // var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
-var tempPopulation = [];
 var newPopulation = [];
+var bestPath = 0;
+var oldBestPathsLength = [];
+var speed = 10;
 
 $(document).ready(function() {
 	canvas = $("#canvas")[0];
@@ -17,12 +19,28 @@ $(document).ready(function() {
 	CANVAS_X = canvas.width;
 	CANVAS_Y = canvas.height;
 
+	$("#start").click(function() {
+		if(run) {
+			run = false;
+			$("#start").text("Start");
+		} else {
+			run = true;
+			$("#start").text("Stop");
+		}
+	});
+
 	initNodes(randomGenerating);
 	generatePopulation();
 	setInterval(function() {
-		drawing();
-		rankGeneration();
-	}, 10);
+		if(run) {
+			drawing();
+			rankGeneration();
+			$("#bestPath").text(parseInt(getFitness(bestPath)));
+		}
+		
+	}, speed);
+
+	
 
 });
 
@@ -34,38 +52,56 @@ function initNodes(rand) {
 			// TODO : check there isn't already another node with the same values
 		}
 	} else {
-		initFixedNodes();
+		initFixedNodes(10);
 	}
 	
 }
 
 //	Inits the nodes with fixed values so that we can compare results with different parameters in the GA
-function initFixedNodes() {
-	nodes.push(new Node (388, 18,1));
-	nodes.push(new Node(212, 247,2));
-	nodes.push(new Node(111, 44,3));
-	nodes.push(new Node(10, 241,4));
-	nodes.push(new Node(376, 261,5));
-	nodes.push(new Node(356, 248,6));
-	nodes.push(new Node(195, 242,7));
-	nodes.push(new Node(140, 370,8));
-	nodes.push(new Node(84, 50,9));
-	nodes.push(new Node(306, 161,10));
-	nodes.push(new Node(4, 18,11));
-	nodes.push(new Node(192, 254,12));
-	nodes.push(new Node(221, 373,13));
-	nodes.push(new Node(334, 92,14));
-	nodes.push(new Node(232, 105,15));
-	nodes.push(new Node(217, 63,16));
-	nodes.push(new Node(375, 87,17));
-	nodes.push(new Node(340, 367,18));
-	nodes.push(new Node(133, 240,19));
-	nodes.push(new Node(43, 113,20));
-	nodes.push(new Node(236, 147,21));
-	nodes.push(new Node(229, 230,22));
-	nodes.push(new Node(189, 60,23));
-	nodes.push(new Node(42, 9,24));
-	nodes.push(new Node(289, 280,25));
+function initFixedNodes(number) {
+	if(number == 5) {
+		nodes.push(new Node (388, 18,1));
+		nodes.push(new Node(212, 247,2));
+		nodes.push(new Node(111, 44,3));
+		nodes.push(new Node(10, 241,4));
+		nodes.push(new Node(376, 261,5));
+	} else if(number == 10) {
+		nodes.push(new Node (388, 18,1));
+		nodes.push(new Node(212, 247,2));
+		nodes.push(new Node(111, 44,3));
+		nodes.push(new Node(10, 241,4));
+		nodes.push(new Node(376, 261,5));
+		nodes.push(new Node(356, 248,6));
+		nodes.push(new Node(195, 242,7));
+		nodes.push(new Node(140, 370,8));
+		nodes.push(new Node(84, 50,9));
+		nodes.push(new Node(306, 161,10));
+	} else {
+		nodes.push(new Node (388, 18,1));
+		nodes.push(new Node(212, 247,2));
+		nodes.push(new Node(111, 44,3));
+		nodes.push(new Node(10, 241,4));
+		nodes.push(new Node(376, 261,5));
+		nodes.push(new Node(356, 248,6));
+		nodes.push(new Node(195, 242,7));
+		nodes.push(new Node(140, 370,8));
+		nodes.push(new Node(84, 50,9));
+		nodes.push(new Node(306, 161,10));
+		nodes.push(new Node(192, 254,12));
+		nodes.push(new Node(221, 373,13));
+		nodes.push(new Node(334, 92,14));
+		nodes.push(new Node(232, 105,15));
+		nodes.push(new Node(217, 63,16));
+		nodes.push(new Node(375, 87,17));
+		nodes.push(new Node(340, 367,18));
+		nodes.push(new Node(133, 240,19));
+		nodes.push(new Node(43, 113,20));
+		nodes.push(new Node(236, 147,21));
+		nodes.push(new Node(229, 230,22));
+		nodes.push(new Node(189, 60,23));
+		nodes.push(new Node(42, 9,24));
+		nodes.push(new Node(289, 280,25));
+	}
 }
 
 
@@ -92,7 +128,7 @@ function drawing() {
 		for(var i = 0 ; i < nodes.length ; i++) {
 			drawDot(nodes[i]);
 		}
-		drawPath(population[0]);	// Drawing first chromosome's path
+		drawPath(bestPath);	// Drawing first chromosome's path
 	}
 }
 

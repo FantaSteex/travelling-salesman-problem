@@ -1,5 +1,5 @@
 var PROBA_CROSSING = 0.8725;	// Probability of crossing parents for generating children
-var PROBA_MUTATE = 0.05	// Probability of mutating the newly generated chromosome
+var PROBA_MUTATE = 0.01;	// Probability of mutating the newly generated chromosome
 var POPULATION_SIZE = 20;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
 var wheel = [];
@@ -15,12 +15,13 @@ function generatePopulation() {
 		shuffle(chromosome);
 		population.push(chromosome);
 	}
+	setBestPath();
 }
 
 //	Generates a new population using the wheel method
 function wheelGeneration() {
 	
-	/*var fitnessList = evaluateEveryFitness();
+	var fitnessList = evaluateEveryFitness();
 	var fitnessPercentages = {};	// fitnessPercentages[1180.8] = 0.1857, fitnessPercentages[5609] = 0.03...
 	for(var i = 0 ; i < Object.keys(fitnessList).length ; i++) {
 		fitnessPercentages[fitnessList[i]] = fitnessList[i] / sumOfAllFitness;
@@ -59,11 +60,36 @@ function wheelGeneration() {
 					parentsSelectionCompleted = true;
 					break;
 				}	
-
 			}
 		}
-	}*/
+		newPopulation.push(crossing(parent1, parent2));
+		newPopulation.push(crossing(parent2, parent1));
 
+	}
+
+	for(var i = 0 ; i < newPopulation.length ; i++) {
+		mutate(newPopulation[i]);
+	}
+
+	population = newPopulation.splice(0);
+	setBestPath();
+
+}
+
+
+function setBestPath() {
+	var fitnessList = evaluateEveryFitness();
+	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
+    	return fitnessList[b] - fitnessList[a];
+	});
+	console.log(fitnessList, sortedFitness);
+	if(bestPath != 0) {	// Not the first loop of the algorithm
+		if(oldBestPathsLength.indexOf(getFitness(bestPath)) == -1) {
+			oldBestPathsLength.push(getFitness(bestPath));
+			//oldBestPathsLength.sort();
+		}
+	} 
+	bestPath = population[sortedFitness[sortedFitness.length-1]];
 }
 
 
@@ -102,10 +128,6 @@ function rankGeneration() {
 			}
 		}
 
-		if(!parentsSelectionCompleted)
-			console.log("ALERT : PARENTS NOT SELECTED");
-
-
 		newPopulation.push(crossing(parent1, parent2));
 		newPopulation.push(crossing(parent2, parent1));
 
@@ -116,6 +138,8 @@ function rankGeneration() {
 	}
 
 	population = newPopulation.splice(0);
+	setBestPath();
+
 }
 
 function crossing(chromosome1, chromosome2) {
@@ -176,9 +200,8 @@ function crossing(chromosome1, chromosome2) {
 
 function mutate(chromosome) {
 	if(Math.random() <= PROBA_MUTATE) {
-		console.log("MUTATE");
-		console.log(chromosome);
-
+		/*console.log("MUTATE");
+		console.log(chromosome);*/
 		var availableNodes = chromosome.slice(0);
 
 		var rand = randomInt(0, chromosome.length - 1);	// Index of value we have to mutate
@@ -190,7 +213,7 @@ function mutate(chromosome) {
 		//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
 		chromosome[chromosome.indexOf(newValue)] = toMutate;
 		chromosome[rand] = newValue;
-		console.log(chromosome);
+		//console.log(chromosome);
 	}
 }
 
@@ -207,6 +230,7 @@ function getFitness(chromosome) {
 
 //	Evaluates the fitness of every chromosome in the population
 function evaluateEveryFitness() {
+	sumOfAllFitness = 0;
 	var fitnessList = {}, fitness = 0;
 	for(var i = 0 ; i < population.length ; i++) {
 		fitness = getFitness(population[i]);
