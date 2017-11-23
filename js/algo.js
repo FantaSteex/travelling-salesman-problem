@@ -1,5 +1,5 @@
 var PROBA_CROSSING = 0.8725;	// Probability of crossing parents for generating children
-var PROBA_MUTATE = 0.01;	// Probability of mutating the newly generated chromosome
+var PROBA_MUTATE = 0.05;	// Probability of mutating the newly generated chromosome
 var POPULATION_SIZE = 20;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
 var wheel = [];
@@ -143,59 +143,137 @@ function rankGeneration() {
 }
 
 function crossing(chromosome1, chromosome2) {
-	//console.log("--------CROSSING");
-	//console.log(chromosome1, chromosome2);
-	var currentChromosome = chromosome1.slice(0), otherChromosome = chromosome2.slice(0);
-	var currentNode;
-	var solution = [], availableNodes = chromosome1.slice(0);
-	var stayingValue, crossingValue;
+	/*console.log("CROSSING");
+	console.log("c1, c2", chromosome1, chromosome2);*/
+	if(Math.random() <= PROBA_CROSSING) {
+		var currentChromosome = chromosome1.slice(0); // Can be exchanged with otherChromosome at every crossing point
+		var otherChromosome = chromosome2.slice(0);
+		var currentNode;
+		var solution = [], availableNodes = chromosome1.slice(0);
+		var stayingValue, crossingValue;
 
-	solution.push(currentChromosome[0]);
-	if(availableNodes.length > 0)
-		availableNodes.splice(availableNodes.indexOf(currentChromosome[0]), 1);
+		solution.push(currentChromosome[0]);	// Adding the starting node to the solution
+		if(availableNodes.length > 0)
+			availableNodes.splice(availableNodes.indexOf(currentChromosome[0]), 1);	// Remove starting point from available nodes
+
+		currentNode = currentChromosome[0];
+
+		// Loop on each gene of the chromosome
+		for(var i = 0 ; i < chromosome1.length - 1 ; i++) {
+			// currentNode = currentChromosome[i];	// Current gene
+			
+
+			// If currentNode isn't the last gene of currentChromosome's array
+			if(currentChromosome[currentChromosome.length-1] != currentNode)
+				stayingValue = currentChromosome[currentChromosome.indexOf(currentNode) + 1];	// Value will be the gene on the next index
+			else
+				stayingValue = currentChromosome[0];	// Value will be the starting node of the path : the first index of the chromosome
+
+			// Same as above, but for the other chromosome
+			if(otherChromosome[otherChromosome.length-1] != currentNode)
+				crossingValue = otherChromosome[otherChromosome.indexOf(currentNode) + 1];
+			else
+				crossingValue = otherChromosome[0];
+
+			//console.log(currentNode, currentChromosome, otherChromosome, stayingValue, crossingValue);
+			//console.log(currentNode, stayingValue, crossingValue);
 
 
-	for(var i = 0 ; i < chromosome1.length - 1 ; i++) {
-		currentNode = currentChromosome[i];
+			if(!solution.includes(crossingValue) && !solution.includes(stayingValue)) {
+				//console.log("Both");
+				if(Math.random() < PROBA_CROSSING) { // Crossing
+					currentNode = crossingValue;
+					if(currentChromosome.equals(chromosome1)) {
+						//console.log("Equals", currentChromosome, chromosome1, chromosome2);
+						currentChromosome = chromosome2.slice(0);
+						otherChromosome = chromosome1.slice(0);
+						//console.log("Equals", currentChromosome, chromosome1, chromosome2);
+					} else {
+						//console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+						currentChromosome = chromosome1.slice(0);
+						otherChromosome = chromosome2.slice(0);
+						//console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+					}
+				} else {
+					currentNode = stayingValue;
+				}
+			} else if(!solution.includes(crossingValue)) {
+				//console.log("crossing");
+				currentNode = crossingValue;
+				if(currentChromosome.equals(chromosome1)) {
+					//console.log("Equals", currentChromosome, chromosome1, chromosome2);
+					currentChromosome = chromosome2.slice(0);
+					otherChromosome = chromosome1.slice(0);
+					//console.log("Equals", currentChromosome, chromosome1, chromosome2);
+				} else {
+					//console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+					currentChromosome = chromosome1.slice(0);
+					otherChromosome = chromosome2.slice(0);
+					//console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+				}
+			} else if(!solution.includes(stayingValue)) {
+				//console.log("Stay");
+				currentNode = stayingValue;
+			} else {
+				//console.log("Rand");
+				currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
+			}
 
-		
-		if(currentChromosome[currentChromosome.length-1] != currentNode)
-			stayingValue = currentChromosome[i+1];
-		else
-			stayingValue = currentChromosome[0];
 
-		if(otherChromosome[otherChromosome.length-1] != currentNode)	// currentNode not the last value in otherChromosome
-			crossingValue = otherChromosome[otherChromosome.indexOf(currentNode) + 1];
-		else
-			crossingValue = otherChromosome[0];
+			/*if(Math.random() < PROBA_CROSSING) {	// Crossing : TODO PAR BESTFITNESS
+				//console.log("cross");
+				if(solution.includes(crossingValue)) {
+					if(solution.includes(stayingValue)) {
+						console.log("rand");
+						currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
+					} else {
+						console.log("staying");
+						currentNode = stayingValue;
+					}
+				} else {
+					currentNode = crossingValue;
+					// Adjusting the current and other chromosome for the next genes
+					if(currentChromosome.equals(chromosome1)) {
+						console.log("Equals", currentChromosome, chromosome1, chromosome2);
+						currentChromosome = chromosome2.slice(0);
+						otherChromosome = chromosome1.slice(0);
+						console.log("Equals", currentChromosome, chromosome1, chromosome2);
+					} else {
+						console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+						currentChromosome = chromosome1.slice(0);
+						otherChromosome = chromosome2.slice(0);
+						console.log("Not equals", currentChromosome, chromosome1, chromosome2);
+					}
+				}
+			} else {	// No crossing
+				//console.log("no cross");
+				if(solution.includes(stayingValue)) {
+					currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
+				} else {
+					currentNode = stayingValue;
+				}
+			}*/
 
-		
-		//console.log(currentNode, stayingValue, crossingValue);
-		if(Math.random() < PROBA_CROSSING) {	// Crossing
+			//console.log(currentNode, solution, availableNodes);
 
-			currentNode = crossingValue;
-			currentChromosome = (currentChromosome == chromosome1 ? chromosome2:chromosome1);
-		} else {	// No crossing
-			currentNode = stayingValue;
-		}
+			
+			/*if(solution.includes(currentNode)) {	// Chosen node is already in the solution we are building
+				//console.log("includes");
+				currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
+			}*/
 
-		//console.log(currentNode, availableNodes);
-
-		if(solution.includes(currentNode)) {
-			var n = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)])
-			solution.push(n);
-			if(availableNodes.length > 0)
-				availableNodes.splice(availableNodes.indexOf(n), 1);
-		}
-		else {
 			solution.push(currentNode);
 			if(availableNodes.length > 0)
 				availableNodes.splice(availableNodes.indexOf(currentNode), 1);
+			
 		}
-		//console.log(solution);
-	}
+		//console.log("Solution : ", solution);
+		return solution;
 
-	return solution;
+	} else {
+		//console.log("Solution (no cross) : ", chromosome1);
+		return chromosome1;
+	}
 }	
 
 function mutate(chromosome) {
@@ -213,7 +291,7 @@ function mutate(chromosome) {
 		//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
 		chromosome[chromosome.indexOf(newValue)] = toMutate;
 		chromosome[rand] = newValue;
-		//console.log(chromosome);
+		console.log(chromosome);
 	}
 }
 
