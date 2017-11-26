@@ -12,10 +12,36 @@ var copyPopulation = [];
 var newPopulation = [];
 var bestPath = 0;
 var oldBestPathsLength = [];
-var speed = 10;
+var speed = 1;
 var generation = 1;
 var USE_ELITISM = true;
-var numberElitism = 2;
+var numberElitism = 5;
+var stopPoint = 0; 	// If > 0 then represents after how many generations the algorithm will stop if bestPath doesn't change
+
+//------- JavaScript ------------
+var xhr = new XMLHttpRequest();
+xhr.open('GET', 'send-ajax-data.php');
+xhr.send(null);
+xhr.onreadystatechange = function () {
+	var DONE = 4; // readyState 4 means the request is done.
+	var OK = 200; // status 200 is a successful return.
+	if (xhr.readyState === DONE) {
+		if (xhr.status === OK) 
+			console.log(xhr.responseText); // 'This is the returned text.'
+		else
+			console.log('Error: ' + xhr.status); // An error occurred during the request.
+	}
+};
+
+//------- jQuery ------------
+$.ajax ({	
+	url: 'send-ajax-data.php',	
+}).done(function(res) {
+	console.log(res);
+}).fail( function(err) {
+	console.log('Error: ' + err.status);
+});
+
 
 $(document).ready(function() {
 	canvas = $("#canvas")[0];
@@ -40,7 +66,7 @@ $(document).ready(function() {
 		if(run) {
 			//console.log("--------------------------GENERATION " + (generation + 1));
 			drawing();
-			rankGeneration(USE_ELITISM);
+			wheelGeneration(USE_ELITISM);
 			//console.log("Population : ", population);
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
 			$("#generation").text(generation);
@@ -61,7 +87,7 @@ function initNodes(rand) {
 			// TODO : check there isn't already another node with the same values
 		}
 	} else {
-		initFixedNodes(10);
+		initFixedNodes(25);
 	}
 	
 }
@@ -96,6 +122,7 @@ function initFixedNodes(number) {
 		nodes.push(new Node(140, 370,8));
 		nodes.push(new Node(84, 50,9));
 		nodes.push(new Node(306, 161,10));
+		nodes.push(new Node(250, 200,11));
 		nodes.push(new Node(192, 254,12));
 		nodes.push(new Node(221, 373,13));
 		nodes.push(new Node(334, 92,14));

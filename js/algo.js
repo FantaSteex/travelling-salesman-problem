@@ -1,6 +1,6 @@
-var PROBA_CROSSING = 0.8725;	// Probability of crossing parents for generating children
-var PROBA_MUTATE = 0.05;	// Probability of mutating the newly generated chromosome
-var POPULATION_SIZE = 20;
+var PROBA_CROSSING = 0.6;	// Probability of crossing parents for generating children
+var PROBA_MUTATE = 0.1;	// Probability of mutating the newly generated chromosome
+var POPULATION_SIZE = 100;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
 var wheel = [];
 
@@ -19,94 +19,29 @@ function generatePopulation() {
 }
 
 //	Generates a new population using the wheel method
-function wheelGeneration() {
+function wheelGeneration(elitism) {
 	
 	var fitnessList = evaluateEveryFitness();
-	var fitnessPercentages = {};	// fitnessPercentages[1180.8] = 0.1857, fitnessPercentages[5609] = 0.03...
-	for(var i = 0 ; i < Object.keys(fitnessList).length ; i++) {
-		fitnessPercentages[fitnessList[i]] = fitnessList[i] / sumOfAllFitness;
-	}
 
-	var tempArray = fitnessPercentages;	// Copy of fitnessPercentages
-
-
-
-	// DESC sorted fitnessPercentages.values
-	var fitnessPercentagesSorted = Object.keys(fitnessPercentages).sort();	// DESC : sort(function(a, b){return b-a})
-	var realPercentages = [];
-
-	var startingPercentage = 0;
-	for(var i = 0 ; i < fitnessPercentagesSorted.length ; i++) {
-		fitnessPercentagesSorted[i];
-	}
-
-	for(var i = 0 ; i < Object.keys(fitnessPercentages).length ; i++) {
-		
-	}
-	// Wheel selection
-	var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
-	while(!parentsSelectionCompleted) {
-		console.log("while");
-		for(var i = 0 ; i < population.length ; i++) {
-			console.log(i);
-			if(fitnessPercentages[getFitness(population[i])] > Math.random()) {	// Select the chromosome
-				if(parent1 == null) 
-					parent1 = population[i];
-				else if(parent2 == null) {
-					parent2 = population[i];
-					parentsSelectionCompleted = true;
-				}
-				else {	// Both are set
-					parentsSelectionCompleted = true;
-					break;
-				}	
-			}
-		}
-		newPopulation.push(crossing(parent1, parent2));
-		newPopulation.push(crossing(parent2, parent1));
-
-	}
-
-	for(var i = 0 ; i < newPopulation.length ; i++) {
-		mutate(newPopulation[i]);
-	}
-
-	population = newPopulation.splice(0);
-	setBestPath();
-
-}
-
-
-function setBestPath() {
-	var fitnessList = evaluateEveryFitness();
-	//console.log(Object.keys(fitnessList).sort());
-	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
-    	return fitnessList[b] - fitnessList[a];
-	});
-	//console.log(fitnessList, sortedFitness);
-	if(bestPath != 0) {	// Not the first loop of the algorithm
-		if(oldBestPathsLength.indexOf(getFitness(bestPath)) == -1) {
-			oldBestPathsLength.push(getFitness(bestPath));
-			//oldBestPathsLength.sort();
-		}
-	} 
-	bestPath = population[sortedFitness[sortedFitness.length-1]];
-}
-
-
-//	Generates a new population using the rank method
-function rankGeneration(elitism) {
-	var fitnessList = evaluateEveryFitness();
 	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
     	return fitnessList[b] - fitnessList[a];
 	});
 
-	var sortedFitnessList = {};
-	var rank = 1;
+	var percentages = [];
+	for(var i = 0, j = sortedFitness.length-1 ; i < sortedFitness.length ; i++, j--) {
+		if(i == j)
+			percentages[parseInt(sortedFitness[i])] = fitnessList[parseInt(sortedFitness[i])] / sumOfAllFitness;
+		else
+			percentages[parseInt(sortedFitness[i])] = fitnessList[parseInt(sortedFitness[j])] / sumOfAllFitness;
+	}
+
+	var accumulatedPercentages = [];
+	var accu = 0;
 	for(var i = 0 ; i < sortedFitness.length ; i++) {
-		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
-			sortedFitnessList[fitnessList[sortedFitness[i]]] = rank++;
+		accu += percentages[sortedFitness[parseInt(i)]];
+		accumulatedPercentages[sortedFitness[parseInt(i)]] = accu;
 	}
+
 	newPopulation = [];
 
 	var numberElitismPicked = 0;
@@ -117,13 +52,13 @@ function rankGeneration(elitism) {
 			newPopulation.push(population[id].slice(0));
 		}
 	}
-	//console.log(newPopulation[0], newPopulation[1], population[parseInt(sortedFitness[19])], population[parseInt(sortedFitness[18])]);
-	while(newPopulation.length < population.length) {
 
-		var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
+	// Wheel selection
+	var parent1 = null, parent2 = null;
+	while(newPopulation.length < population.length) {
 	
 		for(var i = 0 ; i < population.length ; i++) {
-			if(sortedFitnessList[getFitness(population[i])] >= randomInt(1, rank-1)) {	// Select the chromosome
+			if(accumulatedPercentages[i] >= Math.random()) {	// Select the chromosome
 				if(parent1 == null) 
 					parent1 = population[i];
 				else if(parent2 == null) {
@@ -143,64 +78,38 @@ function rankGeneration(elitism) {
 			newPopulation.push(crossing(parent2, parent1));
 
 	}
-	//console.log(newPopulation, population);
+
+	//var increment = (elitism ? numberElitismPicked-1:0);	// We don't mutate chromosomes that were selected by elitism
 	for(var i = 0 ; i < newPopulation.length ; i++) {
 		mutate(newPopulation[i]);
 	}
+
 	population = newPopulation.splice(0);
 	setBestPath();
-
 }
 
-//	Generates a new population using the rank method
-function rankPowGeneration() {
+$("#maDiv").addClass("rouge");
+$("#maDiv").html("Texte");
+
+
+function setBestPath() {
 	var fitnessList = evaluateEveryFitness();
+	//console.log(Object.keys(fitnessList).sort());
 	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
     	return fitnessList[b] - fitnessList[a];
 	});
-	
-	var sortedFitnessList = {};
-	var rank = 1;
-	for(var i = 0 ; i < sortedFitness.length ; i++) {
-		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
-			sortedFitnessList[fitnessList[sortedFitness[i]]] = Math.pow(rank++, 2);
-	}
-	rank = Math.pow(rank-1, 2);
-	console.log(sortedFitnessList);
-	newPopulation = [];
-	while(newPopulation.length < population.length) {
-
-		var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
-	
-		for(var i = 0 ; i < population.length ; i++) {
-			if(sortedFitnessList[getFitness(population[i])] >= randomInt(1, rank-1)) {	// Select the chromosome
-				if(parent1 == null) 
-					parent1 = population[i];
-				else if(parent2 == null) {
-					parent2 = population[i];
-					parentsSelectionCompleted = true;
-				}
-				else {	// Both are set
-					parentsSelectionCompleted = true;
-					break;
-				}	
-
-			}
+	//console.log(fitnessList, sortedFitness);
+	if(bestPath != 0) {	// Not the first loop of the algorithm
+		if(oldBestPathsLength.indexOf(getFitness(bestPath)) == -1) {
+			oldBestPathsLength.push(getFitness(bestPath));
+			//oldBestPathsLength.sort();
 		}
-
-		newPopulation.push(crossing(parent1, parent2));
-		newPopulation.push(crossing(parent2, parent1));
-
-	}
-
-	for(var i = 0 ; i < newPopulation.length ; i++) {
-		mutate(newPopulation[i]);
-	}
-
-	population = newPopulation.splice(0);
-	setBestPath();
-
+	} 
+	bestPath = population[sortedFitness[sortedFitness.length-1]];
 }
+
+
+
 
 function crossing(chromosome1, chromosome2) {
 	/*console.log("CROSSING");
