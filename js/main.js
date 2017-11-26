@@ -8,11 +8,14 @@ var run = false;	// Determines wether the genetic algorithm is running or not
 var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
 // var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
+var copyPopulation = [];
 var newPopulation = [];
 var bestPath = 0;
 var oldBestPathsLength = [];
 var speed = 10;
 var generation = 1;
+var USE_ELITISM = true;
+var numberElitism = 2;
 
 $(document).ready(function() {
 	canvas = $("#canvas")[0];
@@ -32,11 +35,12 @@ $(document).ready(function() {
 
 	initNodes(randomGenerating);
 	generatePopulation();
+
 	setInterval(function() {
 		if(run) {
 			//console.log("--------------------------GENERATION " + (generation + 1));
 			drawing();
-			rankGeneration();
+			rankGeneration(USE_ELITISM);
 			//console.log("Population : ", population);
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
 			$("#generation").text(generation);

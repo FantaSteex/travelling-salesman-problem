@@ -79,10 +79,11 @@ function wheelGeneration() {
 
 function setBestPath() {
 	var fitnessList = evaluateEveryFitness();
+	//console.log(Object.keys(fitnessList).sort());
 	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
     	return fitnessList[b] - fitnessList[a];
 	});
-	console.log(fitnessList, sortedFitness);
+	//console.log(fitnessList, sortedFitness);
 	if(bestPath != 0) {	// Not the first loop of the algorithm
 		if(oldBestPathsLength.indexOf(getFitness(bestPath)) == -1) {
 			oldBestPathsLength.push(getFitness(bestPath));
@@ -94,7 +95,7 @@ function setBestPath() {
 
 
 //	Generates a new population using the rank method
-function rankGeneration() {
+function rankGeneration(elitism) {
 	var fitnessList = evaluateEveryFitness();
 	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
     	return fitnessList[b] - fitnessList[a];
@@ -106,7 +107,66 @@ function rankGeneration() {
 		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
 			sortedFitnessList[fitnessList[sortedFitness[i]]] = rank++;
 	}
+	newPopulation = [];
 
+	var numberElitismPicked = 0;
+	if(elitism) {
+		copyPopulation = population.slice(0);
+		for(var i = sortedFitness.length - 1 ; numberElitismPicked < numberElitism ; i-- && numberElitismPicked++) {
+			var id = parseInt(sortedFitness[i]);
+			newPopulation.push(population[id].slice(0));
+		}
+	}
+	//console.log(newPopulation[0], newPopulation[1], population[parseInt(sortedFitness[19])], population[parseInt(sortedFitness[18])]);
+	while(newPopulation.length < population.length) {
+
+		var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
+	
+		for(var i = 0 ; i < population.length ; i++) {
+			if(sortedFitnessList[getFitness(population[i])] >= randomInt(1, rank-1)) {	// Select the chromosome
+				if(parent1 == null) 
+					parent1 = population[i];
+				else if(parent2 == null) {
+					parent2 = population[i];
+					parentsSelectionCompleted = true;
+				}
+				else {	// Both are set
+					parentsSelectionCompleted = true;
+					break;
+				}	
+
+			}
+		}
+
+		newPopulation.push(crossing(parent1, parent2));
+		if(newPopulation.length < population.length)
+			newPopulation.push(crossing(parent2, parent1));
+
+	}
+	//console.log(newPopulation, population);
+	for(var i = 0 ; i < newPopulation.length ; i++) {
+		mutate(newPopulation[i]);
+	}
+	population = newPopulation.splice(0);
+	setBestPath();
+
+}
+
+//	Generates a new population using the rank method
+function rankPowGeneration() {
+	var fitnessList = evaluateEveryFitness();
+	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
+    	return fitnessList[b] - fitnessList[a];
+	});
+	
+	var sortedFitnessList = {};
+	var rank = 1;
+	for(var i = 0 ; i < sortedFitness.length ; i++) {
+		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
+			sortedFitnessList[fitnessList[sortedFitness[i]]] = Math.pow(rank++, 2);
+	}
+	rank = Math.pow(rank-1, 2);
+	console.log(sortedFitnessList);
 	newPopulation = [];
 	while(newPopulation.length < population.length) {
 
@@ -291,7 +351,7 @@ function mutate(chromosome) {
 		//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
 		chromosome[chromosome.indexOf(newValue)] = toMutate;
 		chromosome[rand] = newValue;
-		console.log(chromosome);
+		//console.log(chromosome);
 	}
 }
 

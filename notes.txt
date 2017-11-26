@@ -42,3 +42,90 @@ Algo :
 4 - Utiliser la génération n+1 pour la prochaine boucle de l'algo
 5 - Si la condition de fin est satisfaite : stop et renvoyer la meilleure solution
 6 - Goto étape 2
+
+
+
+TODO : rank pow
+wheel
+elitism
+elitism wheel
+elitism rank pow
+V elitism rank
+Stop after X times the same best path
+
+
+
+
+Generation 787 : Path = 1456.7082780347323 , path = 2,7,3,9,4,8,5,6,1,10
+
+Generation 861 : Path = 1456.7082780347323 , path = 2,7,3,9,4,8,5,6,1,10
+
+Generation 862 : Path = 1486.2524144105205 , path = 2,7,3,9,4,8,5,6,10,1
+
+Generation 863 : Path = 1486.2524144105205 , path = 2,7,3,9,4,8,5,6,10,1
+
+Generation 864 : Path = 1584.56601230201 , path = 2,7,3,9,4,8,1,6,5,10
+
+
+Reste : [6, 5, 1, 10, 9, 3, 4, 8, 7, 2]
+	1413.418
+1 et 9 : [6, 3, 1, 10, 9, 5, 4, 8, 7, 2] 
+	2221.059
+
+13 14 15 6 7 11 10 : [6, 5, 1, 10, 9, 3, 4, 8, 7, 2]
+	1413.418
+
+
+
+
+
+
+
+
+
+
+c1, c2 (10) [4, 3, 9, 5, 1, 6, 10, 2, 7, 8] (10) [4, 3, 9, 1, 5, 6, 10, 2, 7, 8]            ^
+Solution :  (10) [4, 3, 9, 1, 5, 8, 10, 2, 7, 6]
+							    ^
+
+c1, c2 (10) [4, 3, 9, 1, 5, 6, 10, 2, 7, 8] (10) [4, 3, 9, 5, 1, 6, 10, 2, 7, 8]                      ^                               
+   ^
+Solution :  (10) [4, 3, 9, 5, 6, 10, 8, 2, 7, 1]
+									^
+c1, c2 (10) [4, 3, 9, 5, 1, 6, 10, 2, 7, 8] (10) [4, 3, 9, 1, 5, 6, 10, 2, 7, 8]
+Solution :  (10) [4, 3, 9, 5, 6, 7, 10, 2, 8, 1]
+
+
+
+
+CROSSING
+c1, c2 (10) [3, 6, 2, 8, 9, 4, 5, 10, 1, 7] (10) [3, 9, 4, 8, 6, 2, 5, 10, 1, 7]
+
+9 [3] (9) [6, 2, 8, 9, 4, 5, 10, 1, 7]
+
+Doesn't include
+-----------------
+2 (2) [3, 9] (8) [6, 2, 8, 4, 5, 10, 1, 7]
+
+Doesn't include
+
+5 (3) [3, 9, 2] (7) [6, 8, 4, 5, 10, 1, 7]
+
+
+
+c1 [3, 6, 2, 8, 9, 4, 5, 10, 1, 7]  
+c2 [3, 9, 4, 8, 6, 2, 5, 10, 1, 7]
+
+solution = [3, 9]
+availableNodes = [6, 2, 8, 4, 5, 10, 1, 7]
+
+currentChromosome = c2
+otherChromosome = c1
+
+{3}
+currentNode = 9
+
+stayingValue = 4
+crossingValue = 4
+
+i = 1
