@@ -1,11 +1,11 @@
 var canvas;
 var context;
 var nodes = [];	// Contains every node in the graph
-var NUMBER_OF_NODES = 25;	// Determines how many nodes there will be in the initialized graph
+var NUMBER_OF_NODES = 15;	// Determines how many nodes there will be in the initialized graph
 var CANVAS_X;
 var CANVAS_Y;
 var run = false;	// Determines wether the genetic algorithm is running or not
-var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
+var randomGenerating = true;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
 // var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
 var copyPopulation = [];
@@ -17,30 +17,6 @@ var generation = 1;
 var USE_ELITISM = true;
 var numberElitism = 5;
 var stopPoint = 0; 	// If > 0 then represents after how many generations the algorithm will stop if bestPath doesn't change
-
-//------- JavaScript ------------
-var xhr = new XMLHttpRequest();
-xhr.open('GET', 'send-ajax-data.php');
-xhr.send(null);
-xhr.onreadystatechange = function () {
-	var DONE = 4; // readyState 4 means the request is done.
-	var OK = 200; // status 200 is a successful return.
-	if (xhr.readyState === DONE) {
-		if (xhr.status === OK) 
-			console.log(xhr.responseText); // 'This is the returned text.'
-		else
-			console.log('Error: ' + xhr.status); // An error occurred during the request.
-	}
-};
-
-//------- jQuery ------------
-$.ajax ({	
-	url: 'send-ajax-data.php',	
-}).done(function(res) {
-	console.log(res);
-}).fail( function(err) {
-	console.log('Error: ' + err.status);
-});
 
 
 $(document).ready(function() {
@@ -66,11 +42,12 @@ $(document).ready(function() {
 		if(run) {
 			//console.log("--------------------------GENERATION " + (generation + 1));
 			drawing();
-			wheelGeneration(USE_ELITISM);
+			// wheelGeneration(USE_ELITISM);
+			rankGeneration(USE_ELITISM);
 			//console.log("Population : ", population);
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
-			$("#generation").text(generation);
-			$("#recap").append("Generation " + (generation++) + " : Path = " + parseInt(getFitness(bestPath)) + " , path = " + bestPath + "<br/>");
+			$("#generation").text(generation++);
+			//$("#recap").append("Generation " + (generation++) + " : Path = " + parseInt(getFitness(bestPath)) + " , path = " + bestPath + "<br/>");
 		}
 		
 	}, speed);
@@ -87,7 +64,7 @@ function initNodes(rand) {
 			// TODO : check there isn't already another node with the same values
 		}
 	} else {
-		initFixedNodes(25);
+		initFixedNodes(10);
 	}
 	
 }

@@ -1,4 +1,4 @@
-var PROBA_CROSSING = 0.6;	// Probability of crossing parents for generating children
+var PROBA_CROSSING = 0.95;	// Probability of crossing parents for generating children
 var PROBA_MUTATE = 0.1;	// Probability of mutating the newly generated chromosome
 var POPULATION_SIZE = 100;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
@@ -88,9 +88,113 @@ function wheelGeneration(elitism) {
 	setBestPath();
 }
 
-$("#maDiv").addClass("rouge");
-$("#maDiv").html("Texte");
 
+function rankGeneration(elitism) {
+	var fitnessList = evaluateEveryFitness();
+	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
+    	return fitnessList[b] - fitnessList[a];
+	});
+
+	var sortedFitnessList = {};
+	var rank = 1;
+	for(var i = 0 ; i < sortedFitness.length ; i++) {
+		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
+			sortedFitnessList[fitnessList[sortedFitness[i]]] = rank++;
+	}
+	newPopulation = [];
+
+	var numberElitismPicked = 0;
+	if(elitism) {
+		copyPopulation = population.slice(0);
+		for(var i = sortedFitness.length - 1 ; numberElitismPicked < numberElitism ; i-- && numberElitismPicked++) {
+			var id = parseInt(sortedFitness[i]);
+			newPopulation.push(population[id].slice(0));
+		}
+	}
+	//console.log(newPopulation[0], newPopulation[1], population[parseInt(sortedFitness[19])], population[parseInt(sortedFitness[18])]);
+	while(newPopulation.length < population.length) {
+
+		var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
+	
+		for(var i = 0 ; i < population.length ; i++) {
+			if(sortedFitnessList[getFitness(population[i])] >= randomInt(1, rank-1)) {	// Select the chromosome
+				if(parent1 == null) 
+					parent1 = population[i];
+				else if(parent2 == null) {
+					parent2 = population[i];
+					parentsSelectionCompleted = true;
+				}
+				else {	// Both are set
+					parentsSelectionCompleted = true;
+					break;
+				}	
+
+			}
+		}
+
+		newPopulation.push(crossing(parent1, parent2));
+		if(newPopulation.length < population.length)
+			newPopulation.push(crossing(parent2, parent1));
+
+	}
+	//console.log(newPopulation, population);
+	for(var i = 0 ; i < newPopulation.length ; i++) {
+		cleverMutate(newPopulation[i]);
+	}
+	population = newPopulation.splice(0);
+	setBestPath();
+
+}
+
+//	Generates a new population using the rank method
+function rankPowGeneration() {
+	var fitnessList = evaluateEveryFitness();
+	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
+    	return fitnessList[b] - fitnessList[a];
+	});
+	
+	var sortedFitnessList = {};
+	var rank = 1;
+	for(var i = 0 ; i < sortedFitness.length ; i++) {
+		if(sortedFitnessList[fitnessList[sortedFitness[i]]] == null)
+			sortedFitnessList[fitnessList[sortedFitness[i]]] = Math.pow(rank++, 2);
+	}
+	rank = Math.pow(rank-1, 2);
+	console.log(sortedFitnessList);
+	newPopulation = [];
+	while(newPopulation.length < population.length) {
+
+		var parentsSelectionCompleted = false, parent1 = null, parent2 = null;
+	
+		for(var i = 0 ; i < population.length ; i++) {
+			if(sortedFitnessList[getFitness(population[i])] >= randomInt(1, rank-1)) {	// Select the chromosome
+				if(parent1 == null) 
+					parent1 = population[i];
+				else if(parent2 == null) {
+					parent2 = population[i];
+					parentsSelectionCompleted = true;
+				}
+				else {	// Both are set
+					parentsSelectionCompleted = true;
+					break;
+				}	
+
+			}
+		}
+
+		newPopulation.push(crossing(parent1, parent2));
+		newPopulation.push(crossing(parent2, parent1));
+
+	}
+
+	for(var i = 0 ; i < newPopulation.length ; i++) {
+		mutate(newPopulation[i]);
+	}
+
+	population = newPopulation.splice(0);
+	setBestPath();
+
+}
 
 function setBestPath() {
 	var fitnessList = evaluateEveryFitness();
@@ -188,49 +292,6 @@ function crossing(chromosome1, chromosome2) {
 				currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
 			}
 
-
-			/*if(Math.random() < PROBA_CROSSING) {	// Crossing : TODO PAR BESTFITNESS
-				//console.log("cross");
-				if(solution.includes(crossingValue)) {
-					if(solution.includes(stayingValue)) {
-						console.log("rand");
-						currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
-					} else {
-						console.log("staying");
-						currentNode = stayingValue;
-					}
-				} else {
-					currentNode = crossingValue;
-					// Adjusting the current and other chromosome for the next genes
-					if(currentChromosome.equals(chromosome1)) {
-						console.log("Equals", currentChromosome, chromosome1, chromosome2);
-						currentChromosome = chromosome2.slice(0);
-						otherChromosome = chromosome1.slice(0);
-						console.log("Equals", currentChromosome, chromosome1, chromosome2);
-					} else {
-						console.log("Not equals", currentChromosome, chromosome1, chromosome2);
-						currentChromosome = chromosome1.slice(0);
-						otherChromosome = chromosome2.slice(0);
-						console.log("Not equals", currentChromosome, chromosome1, chromosome2);
-					}
-				}
-			} else {	// No crossing
-				//console.log("no cross");
-				if(solution.includes(stayingValue)) {
-					currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
-				} else {
-					currentNode = stayingValue;
-				}
-			}*/
-
-			//console.log(currentNode, solution, availableNodes);
-
-			
-			/*if(solution.includes(currentNode)) {	// Chosen node is already in the solution we are building
-				//console.log("includes");
-				currentNode = (availableNodes.length == 1 ? availableNodes[0]:availableNodes[randomInt(0, availableNodes.length - 1)]);	// Randomly choosing a node in the available ones
-			}*/
-
 			solution.push(currentNode);
 			if(availableNodes.length > 0)
 				availableNodes.splice(availableNodes.indexOf(currentNode), 1);
@@ -264,6 +325,60 @@ function mutate(chromosome) {
 	}
 }
 
+function cleverMutate(chromosome) {
+	if(Math.random() <= PROBA_MUTATE) {
+		//console.log("MUTATE");
+		//console.log(chromosome);
+		var beginNode = 0, endNode = 1, currentDistance = distance(nodes[0], nodes[1]), previousDistance = distance(nodes[0], nodes[1]), worstDistance = sumOfAllFitness, worstNode = 0, bestDistance = 0;
+
+		for(var i = 0; i < chromosome.length - 1 ; i++) {
+			//console.log(i, chromosome[i], chromosome[i+1], nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
+			currentDistance = distance(nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
+			if(currentDistance <= worstDistance) {
+				beginNode = chromosome[i];
+				endNode = chromosome[i+1];
+				worstDistance = currentDistance;
+				//console.log("New worst : ", beginNode, endNode);
+			}
+		}
+
+		//console.log(chromosome, chromosome.length, chromosome[chromosome.length - 1] - 1, chromosome[chromosome.length]);
+		//currentDistance = distance(nodes[chromosome[chromosome.length - 1] - 1], nodes[chromosome[chromosome.length] - 1]);
+		if(currentDistance <= worstDistance) {
+			beginNode = chromosome[chromosome.length - 1];
+			endNode = chromosome[0];
+			worstDistance = currentDistance;
+			//console.log("New worst : ", beginNode, endNode);
+		}
+
+
+		var toMutate;	// Id of the node we will mutate
+		//4 7
+		if(chromosome[0] == beginNode) {
+			//console.log("yes");
+			otherNode = chromosome[chromosome.length - 1];
+		} else {
+			otherNode = chromosome[chromosome.indexOf(beginNode) - 1];
+		}
+		
+		//console.log(beginNode, otherNode, endNode, nodes[beginNode - 1], nodes[otherNode - 1], nodes[endNode - 1]);
+		if(distance(nodes[beginNode - 1], nodes[otherNode - 1]) > distance(nodes[beginNode - 1], nodes[endNode - 1]))
+			toMutate = chromosome[chromosome.indexOf(beginNode) - 1];
+		else
+			toMutate = endNode;
+
+		//console.log(toMutate);
+		var availableNodes = chromosome.slice(0);
+
+		availableNodes.splice(availableNodes.indexOf(toMutate), 1);	// Can't mutate to its own value
+
+		var newValue = availableNodes[randomInt(0, availableNodes.length - 1)];	// New value of mutating octal
+		//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
+		chromosome[chromosome.indexOf(newValue)] = toMutate;
+		chromosome[chromosome.indexOf(toMutate)] = newValue;
+		//console.log(chromosome);
+	}
+}
 
 //	Returns the fitness of the chromosome
 function getFitness(chromosome) {
