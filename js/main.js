@@ -5,7 +5,7 @@ var NUMBER_OF_NODES = 15;	// Determines how many nodes there will be in the init
 var CANVAS_X;
 var CANVAS_Y;
 var run = false;	// Determines wether the genetic algorithm is running or not
-var randomGenerating = true;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
+var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
 // var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
 var copyPopulation = [];
@@ -60,7 +60,8 @@ $(document).ready(function() {
 function initNodes(rand) {
 	if(rand) {
 		for(var i = 0 ; i < NUMBER_OF_NODES ; i++) {
-			nodes.push(randomNode(i+1));
+			// nodes.push(randomNode(i+1));
+			nodes.push(randomNode(i));
 			// TODO : check there isn't already another node with the same values
 		}
 	} else {
@@ -72,12 +73,18 @@ function initNodes(rand) {
 //	Inits the nodes with fixed values so that we can compare results with different parameters in the GA
 function initFixedNodes(number) {
 	if(number == 5) {
-		nodes.push(new Node (388, 18,1));
+		/*nodes.push(new Node (388, 18,1));
 		nodes.push(new Node(212, 247,2));
 		nodes.push(new Node(111, 44,3));
 		nodes.push(new Node(10, 241,4));
-		nodes.push(new Node(376, 261,5));
+		nodes.push(new Node(376, 261,5));*/
+		nodes.push(new Node (388, 18,0));
+		nodes.push(new Node(212, 247,1));
+		nodes.push(new Node(111, 44,2));
+		nodes.push(new Node(10, 241,3));
+		nodes.push(new Node(376, 261,4));
 	} else if(number == 10) {
+		nodes.push(new Node(306, 161,0));
 		nodes.push(new Node (388, 18,1));
 		nodes.push(new Node(212, 247,2));
 		nodes.push(new Node(111, 44,3));
@@ -87,7 +94,6 @@ function initFixedNodes(number) {
 		nodes.push(new Node(195, 242,7));
 		nodes.push(new Node(140, 370,8));
 		nodes.push(new Node(84, 50,9));
-		nodes.push(new Node(306, 161,10));
 	} else {
 		nodes.push(new Node (388, 18,1));
 		nodes.push(new Node(212, 247,2));
@@ -159,12 +165,15 @@ function drawPath(chromosome) {
 	context.strokeStyle = '#00ff00';
 	context.lineWidth = 1;
 	context.beginPath();
-	context.moveTo(nodes[chromosome[0] - 1].x, nodes[chromosome[0] - 1].y);
+	// context.moveTo(nodes[chromosome[0] - 1].x, nodes[chromosome[0] - 1].y);
+	context.moveTo(nodes[chromosome[0]].x, nodes[chromosome[0]].y);
 
 	for(var i = 1 ; i < chromosome.length ; i++)
-		context.lineTo(nodes[chromosome[i] - 1].x, nodes[chromosome[i] - 1].y);
+		context.lineTo(nodes[chromosome[i]].x, nodes[chromosome[i]].y);
+		// context.lineTo(nodes[chromosome[i] - 1].x, nodes[chromosome[i] - 1].y);
 
-	context.lineTo(nodes[chromosome[0] - 1].x, nodes[chromosome[0] - 1].y);
+	// context.lineTo(nodes[chromosome[0] - 1].x, nodes[chromosome[0] - 1].y);
+	context.lineTo(nodes[chromosome[0]].x, nodes[chromosome[0]].y);
 
 	context.stroke();
 	context.closePath();

@@ -1,4 +1,4 @@
-var PROBA_CROSSING = 0.95;	// Probability of crossing parents for generating children
+var PROBA_CROSSING = 0.6;	// Probability of crossing parents for generating children
 var PROBA_MUTATE = 0.1;	// Probability of mutating the newly generated chromosome
 var POPULATION_SIZE = 100;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
@@ -139,7 +139,7 @@ function rankGeneration(elitism) {
 	}
 	//console.log(newPopulation, population);
 	for(var i = 0 ; i < newPopulation.length ; i++) {
-		cleverMutate(newPopulation[i]);
+		mutate(newPopulation[i]);
 	}
 	population = newPopulation.splice(0);
 	setBestPath();
@@ -333,7 +333,8 @@ function cleverMutate(chromosome) {
 
 		for(var i = 0; i < chromosome.length - 1 ; i++) {
 			//console.log(i, chromosome[i], chromosome[i+1], nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
-			currentDistance = distance(nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
+			currentDistance = distance(nodes[chromosome[i]], nodes[chromosome[i+1]]);
+			// currentDistance = distance(nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
 			if(currentDistance <= worstDistance) {
 				beginNode = chromosome[i];
 				endNode = chromosome[i+1];
@@ -362,7 +363,8 @@ function cleverMutate(chromosome) {
 		}
 		
 		//console.log(beginNode, otherNode, endNode, nodes[beginNode - 1], nodes[otherNode - 1], nodes[endNode - 1]);
-		if(distance(nodes[beginNode - 1], nodes[otherNode - 1]) > distance(nodes[beginNode - 1], nodes[endNode - 1]))
+		// if(distance(nodes[beginNode - 1], nodes[otherNode - 1]) > distance(nodes[beginNode - 1], nodes[endNode - 1]))
+		if(distance(nodes[beginNode], nodes[otherNode]) > distance(nodes[beginNode], nodes[endNode]))
 			toMutate = chromosome[chromosome.indexOf(beginNode) - 1];
 		else
 			toMutate = endNode;
@@ -384,9 +386,11 @@ function cleverMutate(chromosome) {
 function getFitness(chromosome) {
 	var pathDistance = 0;
 	for(var i = 0 ; i < chromosome.length - 1 ; i++) {
-		pathDistance += distance(nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
+		// pathDistance += distance(nodes[chromosome[i] - 1], nodes[chromosome[i+1] - 1]);
+		pathDistance += distance(nodes[chromosome[i]], nodes[chromosome[i+1]]);
 	}
-	pathDistance += distance(nodes[chromosome[0] - 1], nodes[chromosome[chromosome.length - 1] - 1]);
+	// pathDistance += distance(nodes[chromosome[0] - 1], nodes[chromosome[chromosome.length - 1] - 1]);
+	pathDistance += distance(nodes[chromosome[0]], nodes[chromosome[chromosome.length - 1]]);
 	return pathDistance;
 }
 
