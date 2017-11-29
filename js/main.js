@@ -8,10 +8,11 @@ var run = false;	// Determines wether the genetic algorithm is running or not
 var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
 // var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
+var oldBestPathsLength = [];
 var copyPopulation = [];
 var newPopulation = [];
 var bestPath = 0;
-var oldBestPathsLength = [];
+var bestPathEver = 0;
 var speed = 1;
 var generation = 1;
 var USE_ELITISM = true;
@@ -43,10 +44,18 @@ $(document).ready(function() {
 			//console.log("--------------------------GENERATION " + (generation + 1));
 			drawing();
 			// wheelGeneration(USE_ELITISM);
-			rankGeneration(USE_ELITISM);
+			wheelCumulatedGeneration(USE_ELITISM);
 			//console.log("Population : ", population);
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
 			$("#generation").text(generation++);
+			if(bestPathEver == 0)
+				bestPathEver = bestPath;
+			else if(getFitness(bestPath) < getFitness(bestPathEver)) {
+				bestPathEver = bestPath;
+				$("#bestPathEver").text("[" + bestPathEver + "]");
+				$("#bestPathEverFitness").text(parseInt(getFitness(bestPathEver)));
+				$("#bestPathEverGeneration").text(generation - 1);
+			}
 			//$("#recap").append("Generation " + (generation++) + " : Path = " + parseInt(getFitness(bestPath)) + " , path = " + bestPath + "<br/>");
 		}
 		
@@ -65,7 +74,7 @@ function initNodes(rand) {
 			// TODO : check there isn't already another node with the same values
 		}
 	} else {
-		initFixedNodes(10);
+		initFixedNodes(25);
 	}
 	
 }
@@ -95,6 +104,8 @@ function initFixedNodes(number) {
 		nodes.push(new Node(140, 370,8));
 		nodes.push(new Node(84, 50,9));
 	} else {
+		// 1843
+		nodes.push(new Node(289, 280,0));
 		nodes.push(new Node (388, 18,1));
 		nodes.push(new Node(212, 247,2));
 		nodes.push(new Node(111, 44,3));
@@ -119,7 +130,6 @@ function initFixedNodes(number) {
 		nodes.push(new Node(229, 230,22));
 		nodes.push(new Node(189, 60,23));
 		nodes.push(new Node(42, 9,24));
-		nodes.push(new Node(289, 280,25));
 	}
 }
 

@@ -19,7 +19,7 @@ function generatePopulation() {
 }
 
 //	Generates a new population using the wheel method
-function wheelGeneration(elitism) {
+function wheelCumulatedGeneration(elitism) {
 	
 	var fitnessList = evaluateEveryFitness();
 
@@ -73,9 +73,11 @@ function wheelGeneration(elitism) {
 			}
 		}
 
-		newPopulation.push(crossing(parent1, parent2));
-		if(newPopulation.length < population.length)
-			newPopulation.push(crossing(parent2, parent1));
+		if(parent1 != null && parent2 != null) {
+			newPopulation.push(crossing(parent1, parent2));
+			if(newPopulation.length < population.length)
+				newPopulation.push(crossing(parent2, parent1));
+		}
 
 	}
 
@@ -88,6 +90,75 @@ function wheelGeneration(elitism) {
 	setBestPath();
 }
 
+function wheelGeneration(elitism) {
+	
+	var fitnessList = evaluateEveryFitness();
+
+	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC
+    	return fitnessList[b] - fitnessList[a];
+	});
+
+	var percentages = [];
+	for(var i = 0, j = sortedFitness.length-1 ; i < sortedFitness.length ; i++, j--) {
+		if(i == j)
+			percentages[parseInt(sortedFitness[i])] = fitnessList[parseInt(sortedFitness[i])] / sumOfAllFitness;
+		else
+			percentages[parseInt(sortedFitness[i])] = fitnessList[parseInt(sortedFitness[j])] / sumOfAllFitness;
+	}
+
+	/*var accumulatedPercentages = [];
+	var accu = 0;
+	for(var i = 0 ; i < sortedFitness.length ; i++) {
+		accu += percentages[sortedFitness[parseInt(i)]];
+		accumulatedPercentages[sortedFitness[parseInt(i)]] = accu;
+	}*/
+
+	newPopulation = [];
+
+	var numberElitismPicked = 0;
+	if(elitism) {
+		copyPopulation = population.slice(0);
+		for(var i = sortedFitness.length - 1 ; numberElitismPicked < numberElitism ; i-- && numberElitismPicked++) {
+			var id = parseInt(sortedFitness[i]);
+			newPopulation.push(population[id].slice(0));
+		}
+	}
+	
+	// Wheel selection
+	var parent1 = null, parent2 = null;
+	while(newPopulation.length < population.length) {
+	
+		for(var i = 0 ; i < population.length ; i++) {
+			if(percentages[i] >= Math.random()) {	// Select the chromosome
+				if(parent1 == null) 
+					parent1 = population[i];
+				else if(parent2 == null) {
+					parent2 = population[i];
+					parentsSelectionCompleted = true;
+				}
+				else {	// Both are set
+					parentsSelectionCompleted = true;
+					break;
+				}	
+
+			}
+		}
+		if(parent1 != null && parent2 != null) {
+			newPopulation.push(crossing(parent1, parent2));
+			if(newPopulation.length < population.length)
+				newPopulation.push(crossing(parent2, parent1));
+		}
+
+	}
+
+	//var increment = (elitism ? numberElitismPicked-1:0);	// We don't mutate chromosomes that were selected by elitism
+	for(var i = 0 ; i < newPopulation.length ; i++) {
+		mutate(newPopulation[i]);
+	}
+
+	population = newPopulation.splice(0);
+	setBestPath();
+}
 
 function rankGeneration(elitism) {
 	var fitnessList = evaluateEveryFitness();
@@ -128,13 +199,14 @@ function rankGeneration(elitism) {
 					parentsSelectionCompleted = true;
 					break;
 				}	
-
 			}
 		}
-
-		newPopulation.push(crossing(parent1, parent2));
-		if(newPopulation.length < population.length)
-			newPopulation.push(crossing(parent2, parent1));
+		if(parent1 != null && parent2 != null) {
+			newPopulation.push(crossing(parent1, parent2));
+			if(newPopulation.length < population.length)
+				newPopulation.push(crossing(parent2, parent1));
+		}
+		
 
 	}
 	//console.log(newPopulation, population);
@@ -188,7 +260,8 @@ function rankPowGeneration() {
 	}
 
 	for(var i = 0 ; i < newPopulation.length ; i++) {
-		mutate(newPopulation[i]);
+		cleverMutate(newPopulation[i]);
+		// mutate(newPopulation[i]);
 	}
 
 	population = newPopulation.splice(0);
@@ -211,7 +284,6 @@ function setBestPath() {
 	} 
 	bestPath = population[sortedFitness[sortedFitness.length-1]];
 }
-
 
 
 
@@ -364,20 +436,34 @@ function cleverMutate(chromosome) {
 		
 		//console.log(beginNode, otherNode, endNode, nodes[beginNode - 1], nodes[otherNode - 1], nodes[endNode - 1]);
 		// if(distance(nodes[beginNode - 1], nodes[otherNode - 1]) > distance(nodes[beginNode - 1], nodes[endNode - 1]))
-		if(distance(nodes[beginNode], nodes[otherNode]) > distance(nodes[beginNode], nodes[endNode]))
-			toMutate = chromosome[chromosome.indexOf(beginNode) - 1];
-		else
+		if(distance(nodes[beginNode], nodes[otherNode]) < distance(nodes[beginNode], nodes[endNode])) {
+			// toMutate = chromosome[chromosome.indexOf(beginNode) - 1];
+			var index1 = chromosome.indexOf(endNode), index2 = chromosome.indexOf(endNode) + 1;
+			var tpm = chromosome[index1];
+			chromosome[index1] = chromosome[index2];
+			chromosome[index2] = tmp;
+		}
+		else {
 			toMutate = endNode;
+			var availableNodes = chromosome.slice(0);
+
+			availableNodes.splice(availableNodes.indexOf(toMutate), 1);	// Can't mutate to its own value
+
+			var newValue = availableNodes[randomInt(0, availableNodes.length - 1)];	// New value of mutating octal
+			//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
+			chromosome[chromosome.indexOf(newValue)] = toMutate;
+			chromosome[chromosome.indexOf(toMutate)] = newValue;
+		}
 
 		//console.log(toMutate);
-		var availableNodes = chromosome.slice(0);
+		// var availableNodes = chromosome.slice(0);
 
-		availableNodes.splice(availableNodes.indexOf(toMutate), 1);	// Can't mutate to its own value
+		// availableNodes.splice(availableNodes.indexOf(toMutate), 1);	// Can't mutate to its own value
 
-		var newValue = availableNodes[randomInt(0, availableNodes.length - 1)];	// New value of mutating octal
+		// var newValue = availableNodes[randomInt(0, availableNodes.length - 1)];	// New value of mutating octal
 		//console.log(chromosome[rand], newValue, chromosome.indexOf(newValue), toMutate);
-		chromosome[chromosome.indexOf(newValue)] = toMutate;
-		chromosome[chromosome.indexOf(toMutate)] = newValue;
+		// chromosome[chromosome.indexOf(newValue)] = toMutate;
+		// chromosome[chromosome.indexOf(toMutate)] = newValue;
 		//console.log(chromosome);
 	}
 }
