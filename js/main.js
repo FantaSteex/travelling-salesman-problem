@@ -7,18 +7,15 @@ var CANVAS_Y;
 var run = false;	// Determines wether the genetic algorithm is running or not
 var randomGenerating = false;	// Determines wether the nodes will be randomly generated or picked from a fixed data set
 var population = [];	// Population of NUMBER_OF_NODES chromosomes
-// var SELECTION_MODE = 1; 	// From 0 to 4 : wheel, rank, elitism, wheel+elitism, rank+elitism
 var oldBestPathsLength = [];
 var copyPopulation = [];
 var newPopulation = [];
-var bestPath = 0;
-var bestPathEver = 0;
+var bestPath = 0;	// Current best chromosome
+var bestPathEver = 0;	// Best chromosome found since the beginning
 var speed = 1;
 var generation = 1;
 var USE_ELITISM = true;
-var numberElitism = 5;
-var stopPoint = 0; 	// If > 0 then represents after how many generations the algorithm will stop if bestPath doesn't change
-
+var numberElitism = 5;	// Number of chromosomes we will keep by elitism
 
 $(document).ready(function() {
 	canvas = $("#canvas")[0];
@@ -41,13 +38,14 @@ $(document).ready(function() {
 
 	setInterval(function() {
 		if(run) {
-			//console.log("--------------------------GENERATION " + (generation + 1));
 			drawing();
-			// wheelGeneration(USE_ELITISM);
-			wheelCumulatedGeneration(USE_ELITISM);
-			//console.log("Population : ", population);
+
+			rankGeneration(USE_ELITISM);
+			// wheelCumulatedGeneration(USE_ELITISM);
+
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
 			$("#generation").text(generation++);
+			
 			if(bestPathEver == 0)
 				bestPathEver = bestPath;
 			else if(getFitness(bestPath) < getFitness(bestPathEver)) {
@@ -56,7 +54,6 @@ $(document).ready(function() {
 				$("#bestPathEverFitness").text(parseInt(getFitness(bestPathEver)));
 				$("#bestPathEverGeneration").text(generation - 1);
 			}
-			//$("#recap").append("Generation " + (generation++) + " : Path = " + parseInt(getFitness(bestPath)) + " , path = " + bestPath + "<br/>");
 		}
 		
 	}, speed);
@@ -64,14 +61,12 @@ $(document).ready(function() {
 	
 
 });
-// 
+
 //	Inits nodes randomly or not according to rand
 function initNodes(rand) {
 	if(rand) {
 		for(var i = 0 ; i < NUMBER_OF_NODES ; i++) {
-			// nodes.push(randomNode(i+1));
 			nodes.push(randomNode(i));
-			// TODO : check there isn't already another node with the same values
 		}
 	} else {
 		initFixedNodes(25);
@@ -82,11 +77,6 @@ function initNodes(rand) {
 //	Inits the nodes with fixed values so that we can compare results with different parameters in the GA
 function initFixedNodes(number) {
 	if(number == 5) {
-		/*nodes.push(new Node (388, 18,1));
-		nodes.push(new Node(212, 247,2));
-		nodes.push(new Node(111, 44,3));
-		nodes.push(new Node(10, 241,4));
-		nodes.push(new Node(376, 261,5));*/
 		nodes.push(new Node (388, 18,0));
 		nodes.push(new Node(212, 247,1));
 		nodes.push(new Node(111, 44,2));
@@ -104,7 +94,6 @@ function initFixedNodes(number) {
 		nodes.push(new Node(140, 370,8));
 		nodes.push(new Node(84, 50,9));
 	} else {
-		// 1843
 		nodes.push(new Node(289, 280,0));
 		nodes.push(new Node (388, 18,1));
 		nodes.push(new Node(212, 247,2));
@@ -132,7 +121,6 @@ function initFixedNodes(number) {
 		nodes.push(new Node(42, 9,24));
 	}
 }
-
 
 function Node(x, y, id) {
 	this.x = x;
@@ -180,9 +168,7 @@ function drawPath(chromosome) {
 
 	for(var i = 1 ; i < chromosome.length ; i++)
 		context.lineTo(nodes[chromosome[i]].x, nodes[chromosome[i]].y);
-		// context.lineTo(nodes[chromosome[i] - 1].x, nodes[chromosome[i] - 1].y);
 
-	// context.lineTo(nodes[chromosome[0] - 1].x, nodes[chromosome[0] - 1].y);
 	context.lineTo(nodes[chromosome[0]].x, nodes[chromosome[0]].y);
 
 	context.stroke();
