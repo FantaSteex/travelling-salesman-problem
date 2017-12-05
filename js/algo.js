@@ -1,8 +1,8 @@
 var PROBA_CROSSING = 0.95;	// Probability of crossing parents for generating children
-var PROBA_MUTATE = 0.005;	// Probability of mutating the newly generated chromosome
+var PROBA_MUTATE = 0.1;	// Probability of mutating the newly generated chromosome
 var POPULATION_SIZE = 100;
 var sumOfAllFitness = 0;	// Updated by evaluateEveryFitness()
-var wheel = [];
+
 
 //	Randomly generates a population of POPULATION_SIZE chromosomes
 function generatePopulation() {
@@ -20,7 +20,6 @@ function generatePopulation() {
 
 //	Generates a new population using the wheel method
 function wheelCumulatedGeneration(elitism) {
-	
 	var fitnessList = evaluateEveryFitness();
 
 	var sortedFitness = Object.keys(fitnessList).sort(function(a, b) {	// Sort DESC

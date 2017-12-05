@@ -7,12 +7,68 @@
     </head>
     <body>
 		<canvas id="canvas" width="400" height="400"></canvas>
-		<button id="start">Start</button>
-		<span>Current path length : </span><span id="bestPath"></span>
-		<span>Current generation : </span><span id="generation"></span>
-		<br/>
-		<span>Best Path since the beginning : </span><span id="bestPathEver"></span> (<span id="bestPathEverFitness"></span>) on generation <span id="bestPathEverGeneration"></span>
-		<div id="recap"></div>
+		<p>
+			<button id="start">Start</button>
+			<button id="restart">Reset</button>
+			<button id="clear">Clear graph</button>
+			<button id="drawNodes">Draw nodes</button>
+			<button id="drawPath">Draw current best path</button>
+
+			<br/>
+			<label>
+				<input type="radio" id="true" name="random" value="true" />Generate random nodes</label>
+			<label>
+				<input type="radio" id="false" name="random" value="false" checked/>Fixed set of nodes</label>
+			<br/>
+			<select id="fixed">
+				<option value="5">5</option>
+				<option value="10">10</option>
+				<option value="25">25</option>
+			</select>
+
+			<label id="randomLabel" style="display: none;">Number of nodes
+				<input type="text" id="numberNodes"/></label>
+
+			<br/>
+			<label>Mutation probability
+				<input type="text" id="mutation" value="0.1"/></label>
+
+			<br/>
+			<label>Crossing probability
+				<input type="text" id="crossing" value="0.95"/></label>
+
+			<br/>
+			<label>Population size
+				<input type="text" id="population" value="100"/></label>
+
+			<br/>
+			<label>Elitism
+				<select id="elitism">
+					<option value="true">true</option>
+					<option value="false">false</option>
+				</select>	
+			</label>
+
+			<br/>
+			<label>Selection method
+				<select id="selection">
+					<option value="rank">Rank</option>
+					<option value="wheel">Wheel</option>
+				</select>	
+			</label>
+
+		</p>
+		<p>
+			<span>Current path length : </span><span id="bestPath"></span>
+			<span>Current generation : </span><span id="generation"></span>
+		</p>
+		<p>
+			<span>Best Path since the beginning : </span>
+			<span id="bestPathEver"></span> (<span id="bestPathEverFitness"></span>) on generation <span id="bestPathEverGeneration"></span>
+		</p>
+		<p>
+			<div id="recap"></div>
+		</p>
 	</body>
 </html>
 

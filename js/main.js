@@ -1,7 +1,7 @@
 var canvas;
 var context;
 var nodes = [];	// Contains every node in the graph
-var NUMBER_OF_NODES = 15;	// Determines how many nodes there will be in the initialized graph
+var NUMBER_OF_NODES = 10;	// Determines how many nodes there will be in the initialized graph
 var CANVAS_X;
 var CANVAS_Y;
 var run = false;	// Determines wether the genetic algorithm is running or not
@@ -16,12 +16,26 @@ var speed = 1;
 var generation = 1;
 var USE_ELITISM = true;
 var numberElitism = 5;	// Number of chromosomes we will keep by elitism
+var SELECTION_METHOD = "rank";	//"rank" or "wheel"
 
 $(document).ready(function() {
 	canvas = $("#canvas")[0];
 	context = canvas.getContext("2d");	// Context of the canvas
 	CANVAS_X = canvas.width;
 	CANVAS_Y = canvas.height;
+
+	$("#mutation").val(PROBA_MUTATE);
+	$("#crossing").val(PROBA_CROSSING);
+	$("#population").val(POPULATION_SIZE);
+	$("#elitism").val("" + USE_ELITISM);
+	$("#selection").val(SELECTION_METHOD);
+
+	if(randomGenerating)
+		$("#true").prop("checked", true);
+	else
+		$("#false").prop("checked", true);
+	$("#numberNodes").val(""+  NUMBER_OF_NODES);
+	$("#fixed").val(NUMBER_OF_NODES);
 
 	$("#start").click(function() {
 		if(run) {
@@ -33,6 +47,50 @@ $(document).ready(function() {
 		}
 	});
 
+	$("#restart").click(function() {
+		run = false;
+		$("#start").text("Start");
+		updateParameters();
+		nodes = [];
+		population = [];
+		oldBestPathsLength = [];
+		clear();
+		bestPath = 0;
+		bestPathEver = 0;
+		generation = 1;
+		newPopulation = [];
+		copyPopulation = [];
+		initNodes(randomGenerating);
+		generatePopulation();
+	});
+
+	$("input[type=radio]").change(function() {
+		console.log("pouet");
+		if(this.value == "true") {
+			$("#fixed").hide();
+			$("#randomLabel").show();
+		} else {
+			$("#randomLabel").hide();
+			$("#fixed").show();
+		}
+	});
+
+	$("#clear").click(function() {
+		clear();
+	});
+
+	$("#drawNodes").click(function() {
+		if(nodes.length > 0) {
+			for(var i = 0 ; i < nodes.length ; i++) {
+				drawDot(nodes[i]);
+			}
+		}
+	});
+
+	$("#drawPath").click(function() {
+		drawPath(bestPath);
+	});
+
 	initNodes(randomGenerating);
 	generatePopulation();
 
@@ -40,8 +98,10 @@ $(document).ready(function() {
 		if(run) {
 			drawing();
 
-			rankGeneration(USE_ELITISM);
-			// wheelCumulatedGeneration(USE_ELITISM);
+			if(SELECTION_METHOD == "rank")
+				rankGeneration(USE_ELITISM);
+			else
+				wheelCumulatedGeneration(USE_ELITISM);
 
 			$("#bestPath").text(parseInt(getFitness(bestPath)));
 			$("#generation").text(generation++);
@@ -62,6 +122,22 @@ $(document).ready(function() {
 
 });
 
+// Updates parameters set with inputs on the page
+function updateParameters() {
+	PROBA_CROSSING = $("#crossing").val();
+	PROBA_MUTATE = $("#mutation").val();
+	POPULATION_SIZE = $("#population").val();
+	USE_ELITISM = $("#elitism").val();
+	SELECTION_METHOD = $("#selection").val();
+	randomGenerating = ($("#true").is(":checked") ? true:false);
+	console.log(randomGenerating);
+	if(randomGenerating)
+		NUMBER_OF_NODES = $("#numberNodes").val();
+	else
+		NUMBER_OF_NODES = $("#fixed").val();
+
+}
+
 //	Inits nodes randomly or not according to rand
 function initNodes(rand) {
 	if(rand) {
@@ -69,7 +145,7 @@ function initNodes(rand) {
 			nodes.push(randomNode(i));
 		}
 	} else {
-		initFixedNodes(25);
+		initFixedNodes(NUMBER_OF_NODES);
 	}
 	
 }
